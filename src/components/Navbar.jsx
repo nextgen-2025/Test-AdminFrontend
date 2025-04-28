@@ -1,11 +1,9 @@
 import React, { useContext } from 'react'
-import { DoctorContext } from '../context/DoctorContext'
 import { AdminContext } from '../context/AdminContext'
 import { useNavigate } from 'react-router-dom'
 
 const Navbar = () => {
 
-  const { dToken, setDToken } = useContext(DoctorContext)
   const { aToken, setAToken } = useContext(AdminContext)
 
   const siteLogo = 'https://upload.wikimedia.org/wikipedia/en/thumb/7/7b/Hinduja_Group_Logo.svg/1200px-Hinduja_Group_Logo.svg.png'
@@ -14,8 +12,6 @@ const Navbar = () => {
 
   const logout = () => {
     navigate('/')
-    dToken && setDToken('')
-    dToken && localStorage.removeItem('dToken')
     aToken && setAToken('')
     aToken && localStorage.removeItem('aToken')
   }
