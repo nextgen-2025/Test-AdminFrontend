@@ -19,7 +19,8 @@ const Dashboard = () => {
   }
 
   return (
-    <div className='m-5 space-y-6'>
+    // Add ml-64 here
+    <div className='ml-64 m-5 space-y-6'> 
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>
       
       {/* Stats Cards */}

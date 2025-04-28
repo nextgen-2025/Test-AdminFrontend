@@ -33,7 +33,8 @@ const NewAppoinment = () => {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    // Add ml-64 here
+    <div className="ml-64 p-6 bg-gray-50 min-h-screen"> 
       <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">Upcoming Appointments</h2>
 
       {loading ? (

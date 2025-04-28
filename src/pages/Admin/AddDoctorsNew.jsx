@@ -70,7 +70,7 @@ const AddDoctorsNew = () => {
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="ml-64 p-6 max-w-2xl mx-auto">
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="bg-blue-600 text-white p-4 flex items-center">
           <FaUserMd className="text-2xl mr-3" />

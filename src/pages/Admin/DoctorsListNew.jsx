@@ -107,7 +107,8 @@ const DoctorsListNew = () => {
   const currentDoctors = filteredDoctors.slice(indexOfFirstDoctor, indexOfLastDoctor);
 
   return (
-    <div className='m-5 max-h-[90vh] overflow-y-auto'>
+    // Add ml-64 here
+    <div className='ml-64 m-5 max-h-[90vh] overflow-y-auto'> 
       <h1 className='text-2xl font-semibold mb-4 text-blue-700'>Doctors Directory</h1>
       
       {error && (
