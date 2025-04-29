@@ -43,7 +43,7 @@ const Login = () => {
   const siteLogo = 'https://upload.wikimedia.org/wikipedia/en/thumb/7/7b/Hinduja_Group_Logo.svg/1200px-Hinduja_Group_Logo.svg.png'; 
 
   return (
-    <div className='min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4'>
+    <div className='min-h-screen flex flex-col items-center justify-center p-4'>
        <img src={siteLogo} alt="Hinduja Logo" className="h-12 mb-8" /> 
       <form 
         onSubmit={onSubmitHandler} 
