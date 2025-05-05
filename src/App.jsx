@@ -12,6 +12,7 @@ import AddDoctorsNew from './pages/Admin/AddDoctorsNew';
 import DoctorsListNew from './pages/Admin/DoctorsListNew';
 import DoctorManagement from './components/DoctorManagement';
 import BookingsView from './components/BookingsView';
+import CreateVisitMemo from "./pages/Admin/CreateVisitMemo";
 
 const App = () => {
   const { aToken } = useContext(AdminContext)
@@ -43,6 +44,8 @@ const App = () => {
               <Route path='/new-doctorslist' element={<DoctorsListNew />} />
               <Route path='/doctor-management' element={<DoctorManagement />} />
               <Route path='/bookings-view' element={<BookingsView />} />
+              {/* Add this route in the Admin routes section */}
+              <Route path="/create-visit-memo" element={<CreateVisitMemo />} />
             </Routes>
           </main>
         </div>
