@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { AdminContext } from '../../context/AdminContext';
-import { FaSearch, FaUserInjured, FaHospital, FaVial, FaInfoCircle } from 'react-icons/fa';
+import { FaSearch, FaUserInjured, FaHospital, FaVial, FaInfoCircle, FaSpinner } from 'react-icons/fa';
 
 const CreateVisitMemo = () => {
   const { aToken } = useContext(AdminContext);
@@ -54,6 +54,8 @@ const CreateVisitMemo = () => {
         // The response contains an array of patients directly, not in a patientId property
         // console.log('Fetched patients data:', response.data);
         setPatients(response.data || []);
+        console.log("Ress:", response.data);
+        console.log("Ress:", response);
       } else {
         toast.error('Failed to fetch patients');
         // console.log('Error fetching DATA:', response.data);
@@ -338,225 +340,260 @@ const CreateVisitMemo = () => {
   
   return (
     <div className="ml-64 p-6 bg-gray-50 min-h-screen">
-      <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">Create Visit Memo</h2>
-      
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <form onSubmit={handleSubmit}>
-          {/* Patient Selection */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <FaUserInjured className="mr-2 text-blue-600" />
-              Select Patient
-            </h3>
-            <div className="mb-3 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaSearch className="text-gray-400" />
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-2xl font-bold mb-6 text-center text-blue-700">Create Visit Memo</h2>
+        
+        <div className="bg-white rounded-xl shadow-lg p-6 space-y-8">
+          {/* Progress Steps */}
+          <div className="flex justify-center items-center mb-8">
+            <div className="flex items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                selectedPatient ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+              }`}>
+                <FaUserInjured className="w-5 h-5" />
               </div>
-              <input
-                type="text"
-                placeholder="Search patients by name or ID..."
-                onChange={(e) => debouncedPatientSearch(e.target.value)}
-                className="w-full pl-10 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            
-            <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-md">
-              {loading ? (
-                <div className="p-4 text-center text-gray-500">
-                  <div className="animate-spin inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                  <p className="mt-2">Loading patients...</p>
-                </div>
-              ) : filteredPatients.length > 0 ? (
-                filteredPatients.map(patient => (
-                  <div 
-                    key={patient._id}
-                    onClick={() => setSelectedPatient(patient)}
-                    className={`p-3 border-b cursor-pointer hover:bg-gray-50 ${selectedPatient && selectedPatient._id === patient._id ? 'bg-blue-50' : ''}`}
-                  >
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                        {patient.name?.charAt(0).toUpperCase() || '?'}
-                      </div>
-                      <div>
-                        <div className="font-medium">{patient.name || 'Unknown'}</div>
-                        <div className="text-sm text-gray-500">{patient.patientId || 'No ID'}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-4 text-center text-gray-500">No patients found</div>
-              )}
-            </div>
-            
-            {selectedPatient && (
-              <div className="mt-3 p-3 bg-blue-50 rounded-md">
-                <div className="font-medium">Selected Patient: {selectedPatient.name}</div>
-                <div className="text-sm">{selectedPatient.patientId || 'No ID'}</div>
+              <div className={`w-24 h-1 ${selectedPatient ? 'bg-blue-600' : 'bg-gray-200'}`} />
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                selectedDepartments.length > 0 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+              }`}>
+                <FaHospital className="w-5 h-5" />
               </div>
-            )}
+              <div className={`w-24 h-1 ${
+                selectedDepartments.some(dept => dept.tests.length > 0) ? 'bg-blue-600' : 'bg-gray-200'
+              }`} />
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                selectedDepartments.some(dept => dept.tests.length > 0) ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+              }`}>
+                <FaVial className="w-5 h-5" />
+              </div>
+            </div>
           </div>
-          
-          {/* Department and Test Selection */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <FaHospital className="mr-2 text-blue-600" />
-              Select Departments & Tests
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Departments List */}
-              <div className="border rounded-md p-4">
-                <h4 className="font-medium mb-2">Departments</h4>
-                <div className="mb-3 relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FaSearch className="text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Search departments..."
-                    onChange={(e) => debouncedDepartmentSearch(e.target.value)}
-                    className="w-full pl-10 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="max-h-60 overflow-y-auto">
-                  {departmentLoading ? (
-                    <div className="p-4 text-center text-gray-500">
-                      <div className="animate-spin inline-block w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                      <p className="mt-2">Loading departments...</p>
-                    </div>
-                  ) : filteredDepartments.length > 0 ? (
-                    filteredDepartments.map(department => (
-                      <div key={department._id} className="mb-2">
-                        <label className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
-                          <input
-                            type="checkbox"
-                            checked={selectedDepartments.some(dept => dept.departmentId === department._id)}
-                            onChange={() => handleDepartmentSelect(department)}
-                            className="rounded text-blue-600 focus:ring-blue-500"
-                          />
-                          <span>{department.name}</span>
-                        </label>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="p-4 text-center text-gray-500">No departments found</div>
-                  )}
-                </div>
-              </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Patient Selection */}
+            <div className="bg-white p-6 rounded-lg border border-gray-200">
+              <h3 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
+                <FaUserInjured className="mr-2 text-blue-600" />
+                Select Patient
+              </h3>
               
-              {/* Tests List */}
-              <div className="border rounded-md p-4">
-                <h4 className="font-medium mb-2 flex items-center">
-                  <FaVial className="mr-2 text-blue-600" />
-                  Tests
-                </h4>
-                <div className="max-h-60 overflow-y-auto">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search patients by name or ID..."
+                  onChange={(e) => debouncedPatientSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+
+              <div className="mt-4 max-h-60 overflow-y-auto rounded-lg border border-gray-200">
+                {loading ? (
+                  <div className="flex items-center justify-center p-4 text-gray-500">
+                    <FaSpinner className="animate-spin mr-2" />
+                    <span>Loading patients...</span>
+                  </div>
+                ) : filteredPatients.length > 0 ? (
+                  <div className="divide-y divide-gray-200">
+                    {filteredPatients.map(patient => (
+                      <div
+                        key={patient._id}
+                        onClick={() => setSelectedPatient(patient)}
+                        className={`p-4 cursor-pointer transition-colors ${
+                          selectedPatient?._id === patient._id 
+                            ? 'bg-blue-50 border-l-4 border-blue-500' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="flex-shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                              <span className="text-lg font-medium text-blue-600">
+                                {patient.name?.charAt(0).toUpperCase() || '?'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {patient.patientName || 'Unknown'}
+                            </p>
+                            <p className="text-sm text-gray-500 truncate">
+                              ID: {patient.patientId || 'No ID'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    No patients found
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Department Selection */}
+            <div className="bg-white p-6 rounded-lg border border-gray-200">
+              <h3 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
+                <FaHospital className="mr-2 text-blue-600" />
+                Select Departments
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Departments List */}
+                <div>
+                  <div className="relative mb-4">
+                    <input
+                      type="text"
+                      placeholder="Search departments..."
+                      onChange={(e) => debouncedDepartmentSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  </div>
+
+                  <div className="max-h-96 overflow-y-auto rounded-lg border border-gray-200">
+                    {departmentLoading ? (
+                      <div className="flex items-center justify-center p-4 text-gray-500">
+                        <FaSpinner className="animate-spin mr-2" />
+                        <span>Loading departments...</span>
+                      </div>
+                    ) : filteredDepartments.length > 0 ? (
+                      <div className="divide-y divide-gray-200">
+                        {filteredDepartments.map(department => (
+                          <label
+                            key={department._id}
+                            className="flex items-center p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedDepartments.some(dept => dept.departmentId === department._id)}
+                              onChange={() => handleDepartmentSelect(department)}
+                              className="h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            />
+                            <span className="ml-3 text-gray-900">{department.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-4 text-center text-gray-500">
+                        No departments found
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Selected Departments and Tests */}
+                <div>
+                  <h4 className="text-md font-medium mb-4 text-gray-700">Selected Departments & Tests</h4>
                   {selectedDepartments.length > 0 ? (
-                    selectedDepartments.map(dept => (
-                      <div key={dept.departmentId} className="mb-4 p-3 border-b border-gray-100">
-                        <div className="flex justify-between items-center">
-                          <h5 className="font-medium text-blue-600 mb-2">{dept.departmentName}</h5>
-                          <div className="flex space-x-2">
-                            <button
-                              type="button"
-                              onClick={() => handleSelectAllTests(dept.departmentId)}
-                              className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition"
-                            >
-                              Select All
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleClearAllTests(dept.departmentId)}
-                              className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200 transition"
-                            >
-                              Clear All
-                            </button>
+                    <div className="space-y-4">
+                      {selectedDepartments.map(dept => (
+                        <div key={dept.departmentId} className="border rounded-lg p-4">
+                          <div className="flex justify-between items-center mb-3">
+                            <h5 className="font-medium text-gray-900">{dept.departmentName}</h5>
+                            <div className="flex space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => handleSelectAllTests(dept.departmentId)}
+                                className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200"
+                              >
+                                Select All
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleClearAllTests(dept.departmentId)}
+                                className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200"
+                              >
+                                Clear
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                        
-                        <div className="mb-2 relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <FaSearch className="text-gray-400" />
+
+                          <div className="relative mb-2">
+                            <input
+                              type="text"
+                              placeholder="Search tests..."
+                              onChange={(e) => debouncedTestSearch(dept.departmentId, e.target.value)}
+                              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                           </div>
-                          <input
-                            type="text"
-                            placeholder="Search tests..."
-                            onChange={(e) => debouncedTestSearch(dept.departmentId, e.target.value)}
-                            className="w-full pl-10 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-                        
-                        {tests[dept.departmentId] ? (
-                          getFilteredTests(dept.departmentId).length > 0 ? (
-                            getFilteredTests(dept.departmentId).map(test => (
-                              <div key={test._id} className="ml-4 mb-1">
-                                <label className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
+
+                          <div className="max-h-40 overflow-y-auto">
+                            {tests[dept.departmentId] ? (
+                              getFilteredTests(dept.departmentId).map(test => (
+                                <label
+                                  key={test._id}
+                                  className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
+                                >
                                   <input
                                     type="checkbox"
                                     checked={dept.tests.some(t => t.testId === test._id)}
                                     onChange={() => handleTestSelect(dept.departmentId, test)}
-                                    className="rounded text-blue-600 focus:ring-blue-500"
+                                    className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                                   />
-                                  <span>{test.name}</span>
+                                  <span className="ml-2 text-sm text-gray-900">{test.name}</span>
                                 </label>
+                              ))
+                            ) : (
+                              <div className="p-2 text-center text-gray-500 text-sm">
+                                Loading tests...
                               </div>
-                            ))
-                          ) : (
-                            <div className="ml-4 text-gray-500">No tests match your search</div>
-                          )
-                        ) : (
-                          <div className="ml-4 text-gray-500 flex items-center">
-                            <div className="animate-spin w-4 h-4 mr-2 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                            Loading tests...
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))
+                        </div>
+                      ))}
+                    </div>
                   ) : (
-                    <div className="text-gray-500 flex items-center justify-center p-4">
-                      <FaInfoCircle className="mr-2" />
-                      Select departments to view available tests
+                    <div className="text-center p-6 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                      <FaInfoCircle className="mx-auto h-8 w-8 text-gray-400" />
+                      <p className="mt-2 text-sm text-gray-500">
+                        Select departments to view available tests
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
             </div>
-          </div>
-          
-          {/* Message */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3 flex items-center">
-              <FaInfoCircle className="mr-2 text-blue-600" />
-              Additional Message (Optional)
-            </h3>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter any additional instructions or information for the patient..."
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows="4"
-            ></textarea>
-          </div>
-          
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-300 flex items-center"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full"></div>
-                  Creating...
-                </>
-              ) : (
-                'Create Visit Memo'
-              )}
-            </button>
-          </div>
-        </form>
+
+            {/* Additional Notes */}
+            <div className="bg-white p-6 rounded-lg border border-gray-200">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Additional Notes</h3>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Add any additional notes or instructions..."
+                className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={isSubmitting || !selectedPatient || selectedDepartments.length === 0}
+                className={`px-6 py-3 rounded-lg text-white font-medium flex items-center space-x-2 
+                  ${isSubmitting || !selectedPatient || selectedDepartments.length === 0
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+              >
+                {isSubmitting ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Create Visit Memo</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
