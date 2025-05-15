@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { AdminContext } from '../context/AdminContext'
 // Import icons from react-icons for a consistent look
-import { FaTachometerAlt, FaCalendarPlus, FaUserMd, FaListAlt, FaClipboardList, FaFileMedical } from 'react-icons/fa';
+import { FaTachometerAlt, FaCalendarPlus, FaUserMd, FaListAlt, FaClipboardList, FaFileMedical, FaHospital } from 'react-icons/fa';
 
 const Sidebar = () => {
   const { aToken } = useContext(AdminContext);
@@ -40,6 +40,11 @@ const Sidebar = () => {
       path: '/visit-memo',
       icon: <FaClipboardList className="w-5 h-5" />,
       label: 'View Visit Memos'
+    },
+    {
+      path: '/department-queues',
+      icon: <FaHospital className="w-5 h-5" />,
+      label: 'Department Queues'
     }
   ];
 
@@ -85,4 +90,4 @@ const Sidebar = () => {
   )
 }
 
-export default Sidebar
+export default Sidebar;
