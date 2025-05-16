@@ -54,8 +54,8 @@ const CreateVisitMemo = () => {
         // The response contains an array of patients directly, not in a patientId property
         // console.log('Fetched patients data:', response.data);
         setPatients(response.data || []);
-        console.log("Ress:", response.data);
-        console.log("Ress:", response);
+        // console.log("Ress:", response.data);
+        // console.log("Ress:", response);
       } else {
         toast.error('Failed to fetch patients');
         // console.log('Error fetching DATA:', response.data);
