@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
-import { FaHospital, FaUserClock, FaSpinner, FaSync } from "react-icons/fa";
+import { FaHospital, FaUserClock, FaSpinner, FaSync, FaArrowLeft } from "react-icons/fa";
 import { AdminContext } from "../context/AdminContext";
 import { toast } from "react-toastify";
 
@@ -14,6 +14,7 @@ const DepartmentQueue = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [queueData, setQueueData] = useState({});
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
   const { aToken } = useContext(AdminContext);
 
   useEffect(() => {
@@ -96,14 +97,30 @@ const DepartmentQueue = () => {
     );
   }
 
+  const handleDepartmentClick = (dept) => {
+    setSelectedDepartment(dept);
+  };
+
+  const handleBackClick = () => {
+    setSelectedDepartment(null);
+  };
+
   return (
     <div className="ml-64 p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
+            {selectedDepartment && (
+              <button
+                onClick={handleBackClick}
+                className="mr-2 text-blue-600 hover:text-blue-700"
+              >
+                <FaArrowLeft className="text-xl" />
+              </button>
+            )}
             <FaHospital className="text-blue-600 text-2xl" />
             <h2 className="text-2xl font-bold text-gray-800">
-              Department Queues
+              {selectedDepartment ? selectedDepartment.name : 'Department Queues'}
             </h2>
           </div>
           <button
@@ -115,67 +132,71 @@ const DepartmentQueue = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {departments.map((dept) => {
-            const deptQueue = queueData[dept._id] || [];
-            
-            return (
-              <div
-                key={dept._id}
-                className="bg-white rounded-xl shadow-md overflow-hidden"
-              >
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      {dept.name}
-                    </h3>
-                    <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                      Queue: {deptQueue.length}
-                    </span>
-                  </div>
-                  <div className="space-y-3">
-                    {deptQueue.length > 0 ? (
-                      deptQueue.map((patient, index) => (
-                        <div
-                          key={`${dept._id}-${index}`}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="bg-blue-100 p-2 rounded-full">
-                              <FaUserClock className="text-blue-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-800">
-                                Patient ID: {patient.patientId}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Token #{patient.tokenNumber}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Position: {patient.position}
-                              </p>
-                              {patient.tests && patient.tests.length > 0 && (
-                                <p className="text-sm text-gray-500">
-                                  Tests: {patient.tests.map(test => test.testName).join(', ')}
+        <div className={`grid ${selectedDepartment ? '' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'} gap-6`}>
+          {departments
+            .filter(dept => !selectedDepartment || dept._id === selectedDepartment._id)
+            .map((dept) => {
+              const deptQueue = queueData[dept._id] || [];
+              
+              return (
+                <div
+                  key={dept._id}
+                  className="bg-white rounded-xl shadow-md overflow-hidden cursor-pointer"
+                  onClick={() => !selectedDepartment && handleDepartmentClick(dept)}
+                >
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-gray-800">
+                        {dept.name}
+                      </h3>
+                      <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                        Queue: {deptQueue.length}
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      {deptQueue.length > 0 ? (
+                        deptQueue.map((patient, index) => (
+                          <div
+                            key={`${dept._id}-${index}`}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="bg-blue-100 p-2 rounded-full">
+                                <FaUserClock className="text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-800">
+                                  Patient ID: {patient.patientId}
                                 </p>
-                              )}
+                                <p className="text-sm text-gray-500">
+                                  Token #{patient.tokenNumber}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  Position: {patient.position}
+                                </p>
+                                {patient.tests && patient.tests.length > 0 && (
+                                  <p className="text-sm text-gray-500">
+                                    Tests: {patient.tests.map(test => test.testName).join(', ')}
+                                  </p>
+                                )}
+                              </div>
                             </div>
+                            <span className={getStatusBadge(patient.status)}>
+                              {patient.status}
+                            </span>
                           </div>
-                          <span className={getStatusBadge(patient.status)}>
-                            {patient.status}
-                          </span>
+                        ))
+                      ) : (
+                        <div className="text-center py-6 text-gray-500">
+                          No patients in queue
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-6 text-gray-500">
-                        No patients in queue
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </div>
     </div>
