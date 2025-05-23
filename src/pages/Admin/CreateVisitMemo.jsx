@@ -381,7 +381,11 @@ const CreateVisitMemo = () => {
                 <input
                   type="text"
                   placeholder="Search patients by name or ID..."
-                  onChange={(e) => debouncedPatientSearch(e.target.value)}
+                  value={selectedPatient ? (selectedPatient.patientId || selectedPatient || '') : searchTerm}
+                  onChange={(e) => {
+                    setSelectedPatient(null); // Clear selected patient when user types
+                    debouncedPatientSearch(e.target.value);
+                  }}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
